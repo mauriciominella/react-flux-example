@@ -1,5 +1,3 @@
-/*eslintdisable strict */ //Disabling check because we can't run strict mode. Need global vars.
-
 var React = require('react');
 var Header = require('./common/header');
 var RouteHandler = require('react-router').RouteHandler;
