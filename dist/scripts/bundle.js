@@ -417,7 +417,7 @@ module.exports.Dispatcher = require('./lib/Dispatcher');
  * of patent rights can be found in the PATENTS file in the same directory.
  *
  * @providesModule Dispatcher
- * 
+ *
  * @preventMunge
  */
 
@@ -23539,7 +23539,7 @@ var RouteHandler = require('./RouteHandler');
  *       <Route name="about" handler={About}/>
  *     </Route>
  *   ];
- *   
+ *
  *   Router.run(routes, function (Handler) {
  *     React.render(<Handler/>, document.body);
  *   });
@@ -24752,9 +24752,9 @@ var createRouter = require('./createRouter');
  *   Router.run(routes, function (Handler) {
  *     React.render(<Handler/>, document.body);
  *   });
- * 
+ *
  * Using HTML5 history and a custom "cursor" prop:
- * 
+ *
  *   Router.run(routes, Router.HistoryLocation, function (Handler) {
  *     React.render(<Handler cursor={cursor}/>, document.body);
  *   });
@@ -44969,7 +44969,7 @@ module.exports = require('./lib/React');
 },{"./lib/React":75}],203:[function(require,module,exports){
 /*
  * Toastr
- * Copyright 2012-2014 
+ * Copyright 2012-2014
  * Authors: John Papa, Hans Fjällemark, and Tim Ferrell.
  * All Rights Reserved.
  * Use, reproduction, distribution, and modification of this code is subject to the terms and
@@ -45367,6 +45367,15 @@ var AuthorActions = {
             actionType: ActionTypes.UPDATE_AUTHOR,
             author: updatedAuthor
         });
+    },
+
+    deleteAuthor: function(id){
+        AuthorApi.deleteAuthor(id);
+
+        Dispatcher.dispatch({
+            actionType: ActionTypes.DELETE_AUTHOR,
+            id: id
+        });
     }
 };
 
@@ -45474,17 +45483,17 @@ var React = require('react');
 var About = React.createClass({displayName: "About",
     render: function(){
       return (
-          React.createElement("div", null, 
-            React.createElement("h1", null, "About"), 
-            React.createElement("p", null, 
-                "This application uses the following tecnologies:", 
-                React.createElement("ul", null, 
-                    React.createElement("li", null, "React"), 
-                    React.createElement("li", null, "React Router"), 
-                    React.createElement("li", null, "Flux"), 
-                    React.createElement("li", null, "Node"), 
-                    React.createElement("li", null, "Gulp"), 
-                    React.createElement("li", null, "Browserify"), 
+          React.createElement("div", null,
+            React.createElement("h1", null, "About"),
+            React.createElement("p", null,
+                "This application uses the following tecnologies:",
+                React.createElement("ul", null,
+                    React.createElement("li", null, "React"),
+                    React.createElement("li", null, "React Router"),
+                    React.createElement("li", null, "Flux"),
+                    React.createElement("li", null, "Node"),
+                    React.createElement("li", null, "Gulp"),
+                    React.createElement("li", null, "Browserify"),
                     React.createElement("li", null, "Bootstrap")
                 )
             )
@@ -45504,9 +45513,9 @@ $ = jQuery = require('jquery');
 var App = React.createClass({displayName: "App",
   render: function(){
       return (
-          React.createElement("div", null, 
-            React.createElement(Header, null), 
-            React.createElement("div", {className: "container-fluid"}, 
+          React.createElement("div", null,
+            React.createElement(Header, null),
+            React.createElement("div", {className: "container-fluid"},
               React.createElement(RouteHandler, null)
             )
           )
@@ -45531,23 +45540,23 @@ var AuthorForm = React.createClass({displayName: "AuthorForm",
     },
     render: function(){
       return (
-          React.createElement("form", null, 
-              React.createElement("h1", null, "Manage Author"), 
+          React.createElement("form", null,
+              React.createElement("h1", null, "Manage Author"),
               React.createElement(Input, {
-                  name: "firstName", 
-                  label: "First Name", 
-                  placeholder: "First Name", 
-                  value: this.props.author.firstName, 
-                  onChange: this.props.onChange, 
-                  error: this.props.errors.firstName}), 
+                  name: "firstName",
+                  label: "First Name",
+                  placeholder: "First Name",
+                  value: this.props.author.firstName,
+                  onChange: this.props.onChange,
+                  error: this.props.errors.firstName}),
 
               React.createElement(Input, {
-                  name: "lastName", 
-                  label: "Last Name", 
-                  placeholder: "Last Name", 
-                  value: this.props.author.lastName, 
-                  onChange: this.props.onChange, 
-                  error: this.props.errors.lastName}), 
+                  name: "lastName",
+                  label: "Last Name",
+                  placeholder: "Last Name",
+                  value: this.props.author.lastName,
+                  onChange: this.props.onChange,
+                  error: this.props.errors.lastName}),
 
                 React.createElement("input", {type: "submit", value: "Save", className: "btn btn-default", onClick: this.props.onSave})
           )
@@ -45563,32 +45572,42 @@ module.exports = AuthorForm;
 var React = require('react');
 var Router = require('react-router');
 var Link = Router.Link;
+var AuthorActions = require('../../actions/authorActions');
+var toastr = require('toastr');
 
 var AuthorList = React.createClass({displayName: "AuthorList",
     propTypes:{
         authors: React.PropTypes.array.isRequired
     },
 
+    deleteAuthor: function(id, event){
+        event.preventDefault();
+        AuthorActions.deleteAuthor(id);
+        toastr.success('Author Deleted');
+    },
+
     render: function(){
       var createAuthorRow = function(author){
           return (
-              React.createElement("tr", {key: author.id}, 
-                React.createElement("td", null, 
+              React.createElement("tr", {key: author.id},
+                React.createElement("td", null, React.createElement("a", {href: "#", onClick: this.deleteAuthor.bind(this, author.id)}, "Delete")),
+                React.createElement("td", null,
                   React.createElement(Link, {to: "manageAuthor", params: {id: author.id}}, author.id)
-                ), 
+                ),
                 React.createElement("td", null, author.firstName, " ", author.lastName)
               )
           );
       };
 
       return (
-        React.createElement("div", null, 
-          React.createElement("table", {className: "table"}, 
-            React.createElement("thread", null, 
-                React.createElement("th", null, "ID"), 
+        React.createElement("div", null,
+          React.createElement("table", {className: "table"},
+            React.createElement("thread", null,
+                React.createElement("th", null, "Delete"),
+                React.createElement("th", null, "ID"),
                 React.createElement("th", null, "Name")
-            ), 
-            React.createElement("tbody", null, 
+            ),
+            React.createElement("tbody", null,
                 this.props.authors.map(createAuthorRow, this)
             )
           )
@@ -45599,7 +45618,7 @@ var AuthorList = React.createClass({displayName: "AuthorList",
 
 module.exports = AuthorList;
 
-},{"react":202,"react-router":33}],212:[function(require,module,exports){
+},{"../../actions/authorActions":204,"react":202,"react-router":33,"toastr":203}],212:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -45619,11 +45638,23 @@ var AuthorPage = React.createClass({displayName: "AuthorPage",
         };
     },
 
+    componentWillMount: function() {
+        AuthorStore.addChangeListener(this._onChange);
+    },
+
+    componentWillUnmount: function() {
+        AuthorStore.removeChangeListener(this._onChange);
+    },
+
+    _onChange: function(){
+        this.setState({ authors: AuthorStore.getAllAuthors() });
+    },
+
     render: function(){
       return (
-        React.createElement("div", null, 
-          React.createElement("h1", null, "Authors"), 
-          React.createElement(Link, {to: "addAuthor", className: "btn btn-default"}, "Add Author"), 
+        React.createElement("div", null,
+          React.createElement("h1", null, "Authors"),
+          React.createElement(Link, {to: "addAuthor", className: "btn btn-default"}, "Add Author"),
           React.createElement(AuthorList, {authors: this.state.authors})
         )
       );
@@ -45716,10 +45747,10 @@ var ManageAuthorPage = React.createClass({displayName: "ManageAuthorPage",
     },
     render: function(){
       return (
-          React.createElement("div", null, 
-            React.createElement(AuthorForm, {author: this.state.author, 
-              onChange: this.setAuthorState, 
-              onSave: this.saveAuthor, 
+          React.createElement("div", null,
+            React.createElement(AuthorForm, {author: this.state.author,
+              onChange: this.setAuthorState,
+              onSave: this.saveAuthor,
               errors: this.state.errors})
           )
       );
@@ -45738,14 +45769,14 @@ var Link = Router.Link;
 var Header = React.createClass({displayName: "Header",
     render: function(){
       return (
-        React.createElement("nav", {className: "navbar navbar-default"}, 
-          React.createElement("div", {className: "container-fluid"}, 
-            React.createElement(Link, {to: "app", className: "navbar-brand"}, 
+        React.createElement("nav", {className: "navbar navbar-default"},
+          React.createElement("div", {className: "container-fluid"},
+            React.createElement(Link, {to: "app", className: "navbar-brand"},
               React.createElement("img", {src: "images/pluralsight-logo.png"})
-            ), 
-            React.createElement("ul", {className: "nav navbar-nav"}, 
-              React.createElement("li", null, React.createElement(Link, {to: "app"}, "Home")), 
-              React.createElement("li", null, React.createElement(Link, {to: "authors"}, "Authors")), 
+            ),
+            React.createElement("ul", {className: "nav navbar-nav"},
+              React.createElement("li", null, React.createElement(Link, {to: "app"}, "Home")),
+              React.createElement("li", null, React.createElement(Link, {to: "authors"}, "Authors")),
               React.createElement("li", null, React.createElement(Link, {to: "about"}, "About"))
             )
           )
@@ -45778,17 +45809,17 @@ var Input = React.createClass({displayName: "Input",
       }
 
       return (
-          React.createElement("div", {className: wrapperclass}, 
-            React.createElement("label", {htmlFor: this.props.name}, this.props.label), 
-            React.createElement("div", {className: "field"}, 
-              React.createElement("input", {type: "text", 
-                name: this.props.name, 
-                className: "form-control", 
-                placeholder: this.props.placeholder, 
-                ref: this.props.name, 
-                value: this.props.value, 
+          React.createElement("div", {className: wrapperclass},
+            React.createElement("label", {htmlFor: this.props.name}, this.props.label),
+            React.createElement("div", {className: "field"},
+              React.createElement("input", {type: "text",
+                name: this.props.name,
+                className: "form-control",
+                placeholder: this.props.placeholder,
+                ref: this.props.name,
+                value: this.props.value,
                 onChange: this.props.onChange}
-                ), 
+                ),
               React.createElement("div", {className: "input"}, this.props.error)
             )
           )
@@ -45808,9 +45839,9 @@ var Link = Router.Link;
 var Home = React.createClass({displayName: "Home",
     render: function(){
       return (
-        React.createElement("div", {className: "jumbotron"}, 
-          React.createElement("h1", null, "Pluralsight Administration"), 
-          React.createElement("p", null, "React, React Router, and Flux for ultra-responsive web app."), 
+        React.createElement("div", {className: "jumbotron"},
+          React.createElement("h1", null, "Pluralsight Administration"),
+          React.createElement("p", null, "React, React Router, and Flux for ultra-responsive web app."),
           React.createElement(Link, {to: "about", className: "btn btn-primary btn-lg"}, "Learn more")
         )
       );
@@ -45828,9 +45859,9 @@ var Link = require('react-router').Link;
 var NotFoundPage = React.createClass({displayName: "NotFoundPage",
     render: function(){
       return (
-          React.createElement("div", null, 
-              React.createElement("h1", null, "Page Not Found"), 
-              React.createElement("p", null, "Whoops! Sorry, there is nothing to see here."), 
+          React.createElement("div", null,
+              React.createElement("h1", null, "Page Not Found"),
+              React.createElement("p", null, "Whoops! Sorry, there is nothing to see here."),
               React.createElement("p", null, React.createElement(Link, {to: "app"}, "Back to Home"))
           )
       );
@@ -45847,7 +45878,8 @@ var keyMirror = require('react/lib/keyMirror');
 module.exports = keyMirror({
     INITIALIZE: null,
     CREATE_AUTHOR: null,
-    UPDATE_AUTHOR: null
+    UPDATE_AUTHOR: null,
+    DELETE_AUTHOR: null
 });
 
 },{"react/lib/keyMirror":187}],219:[function(require,module,exports){
@@ -45889,15 +45921,15 @@ var Redirect = Router.Redirect;
 
 
 var routes = (
-  React.createElement(Route, {name: "app", path: "/", handler: require('./components/app')}, 
-    React.createElement(DefaultRoute, {handler: require('./components/homePage')}), 
-    React.createElement(Route, {name: "authors", handler: require('./components/authors/authorPage')}), 
-    React.createElement(Route, {name: "addAuthor", path: "author", handler: require('./components/authors/manageAuthorPage')}), 
-    React.createElement(Route, {name: "manageAuthor", path: "author/:id", handler: require('./components/authors/manageAuthorPage')}), 
-    React.createElement(Route, {name: "about", handler: require('./components/about/aboutPage')}), 
-    React.createElement(NotFoundRoute, {handler: require('./components/notFoundPage')}), 
-    React.createElement(Redirect, {from: "about-us", to: "about"}), 
-    React.createElement(Redirect, {from: "awthurs", to: "Authors"}), 
+  React.createElement(Route, {name: "app", path: "/", handler: require('./components/app')},
+    React.createElement(DefaultRoute, {handler: require('./components/homePage')}),
+    React.createElement(Route, {name: "authors", handler: require('./components/authors/authorPage')}),
+    React.createElement(Route, {name: "addAuthor", path: "author", handler: require('./components/authors/manageAuthorPage')}),
+    React.createElement(Route, {name: "manageAuthor", path: "author/:id", handler: require('./components/authors/manageAuthorPage')}),
+    React.createElement(Route, {name: "about", handler: require('./components/about/aboutPage')}),
+    React.createElement(NotFoundRoute, {handler: require('./components/notFoundPage')}),
+    React.createElement(Redirect, {from: "about-us", to: "about"}),
+    React.createElement(Redirect, {from: "awthurs", to: "Authors"}),
     React.createElement(Redirect, {from: "about/*", to: "about"})
   )
 );
@@ -45954,6 +45986,12 @@ Dispatcher.register(function(action){
             var existingAuthor = _.find(_authors, {id: action.author.id});
             var existingAuthorIndex = _.indexOf(_authors, existingAuthor);
             _authors.splice(existingAuthorIndex, 1, action.author);
+            AuthorStore.emitChange();
+          break;
+        case ActionTypes.DELETE_AUTHOR:
+            _.remove(_authors, function(author){
+                return action.id === author.id;
+            });
             AuthorStore.emitChange();
           break;
       default:
