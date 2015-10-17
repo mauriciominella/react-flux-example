@@ -44327,7 +44327,7 @@ module.exports = require('./lib/React');
 },{"./lib/React":70}],198:[function(require,module,exports){
 /*
  * Toastr
- * Copyright 2012-2015
+ * Copyright 2012-2014 
  * Authors: John Papa, Hans Fjällemark, and Tim Ferrell.
  * All Rights Reserved.
  * Use, reproduction, distribution, and modification of this code is subject to the terms and
@@ -44337,7 +44337,6 @@ module.exports = require('./lib/React');
  *
  * Project: https://github.com/CodeSeven/toastr
  */
-/* global define */
 ; (function (define) {
     define(['jquery'], function ($) {
         return (function () {
@@ -44360,7 +44359,7 @@ module.exports = require('./lib/React');
                 options: {},
                 subscribe: subscribe,
                 success: success,
-                version: '2.1.2',
+                version: '2.1.0',
                 warning: warning
             };
 
@@ -44368,8 +44367,7 @@ module.exports = require('./lib/React');
 
             return toastr;
 
-            ////////////////
-
+            //#region Accessible Methods
             function error(message, title, optionsOverride) {
                 return notify({
                     type: toastType.error,
@@ -44426,10 +44424,10 @@ module.exports = require('./lib/React');
                 });
             }
 
-            function clear($toastElement, clearOptions) {
+            function clear($toastElement) {
                 var options = getOptions();
                 if (!$container) { getContainer(options); }
-                if (!clearToast($toastElement, options, clearOptions)) {
+                if (!clearToast($toastElement, options)) {
                     clearContainer(options);
                 }
             }
@@ -44445,8 +44443,9 @@ module.exports = require('./lib/React');
                     $container.remove();
                 }
             }
+            //#endregion
 
-            // internal functions
+            //#region Internal Methods
 
             function clearContainer (options) {
                 var toastsToClear = $container.children();
@@ -44455,9 +44454,8 @@ module.exports = require('./lib/React');
                 }
             }
 
-            function clearToast ($toastElement, options, clearOptions) {
-                var force = clearOptions && clearOptions.force ? clearOptions.force : false;
-                if ($toastElement && (force || $(':focus', $toastElement).length === 0)) {
+            function clearToast ($toastElement, options) {
+                if ($toastElement && $(':focus', $toastElement).length === 0) {
                     $toastElement[options.hideMethod]({
                         duration: options.hideDuration,
                         easing: options.hideEasing,
@@ -44494,9 +44492,6 @@ module.exports = require('./lib/React');
                     hideDuration: 1000,
                     hideEasing: 'swing',
                     onHidden: undefined,
-                    closeMethod: false,
-                    closeDuration: false,
-                    closeEasing: false,
 
                     extendedTimeOut: 1000,
                     iconClasses: {
@@ -44510,9 +44505,8 @@ module.exports = require('./lib/React');
                     timeOut: 5000, // Set timeOut and extendedTimeOut to 0 to make it sticky
                     titleClass: 'toast-title',
                     messageClass: 'toast-message',
-                    escapeHtml: false,
                     target: 'body',
-                    closeHtml: '<button type="button">&times;</button>',
+                    closeHtml: '<button>&times;</button>',
                     newestOnTop: true,
                     preventDuplicates: false,
                     progressBar: false
@@ -44525,44 +44519,109 @@ module.exports = require('./lib/React');
             }
 
             function notify(map) {
-                var options = getOptions();
-                var iconClass = map.iconClass || options.iconClass;
+                var options = getOptions(),
+                    iconClass = map.iconClass || options.iconClass;
+
+                if (options.preventDuplicates) {
+                    if (map.message === previousToast) {
+                        return;
+                    } else {
+                        previousToast = map.message;
+                    }
+                }
 
                 if (typeof (map.optionsOverride) !== 'undefined') {
                     options = $.extend(options, map.optionsOverride);
                     iconClass = map.optionsOverride.iconClass || iconClass;
                 }
 
-                if (shouldExit(options, map)) { return; }
-
                 toastId++;
 
                 $container = getContainer(options, true);
+                var intervalId = null,
+                    $toastElement = $('<div/>'),
+                    $titleElement = $('<div/>'),
+                    $messageElement = $('<div/>'),
+                    $progressElement = $('<div/>'),
+                    $closeElement = $(options.closeHtml),
+                    progressBar = {
+                        intervalId: null,
+                        hideEta: null,
+                        maxHideTime: null
+                    },
+                    response = {
+                        toastId: toastId,
+                        state: 'visible',
+                        startTime: new Date(),
+                        options: options,
+                        map: map
+                    };
 
-                var intervalId = null;
-                var $toastElement = $('<div/>');
-                var $titleElement = $('<div/>');
-                var $messageElement = $('<div/>');
-                var $progressElement = $('<div/>');
-                var $closeElement = $(options.closeHtml);
-                var progressBar = {
-                    intervalId: null,
-                    hideEta: null,
-                    maxHideTime: null
-                };
-                var response = {
-                    toastId: toastId,
-                    state: 'visible',
-                    startTime: new Date(),
-                    options: options,
-                    map: map
-                };
+                if (map.iconClass) {
+                    $toastElement.addClass(options.toastClass).addClass(iconClass);
+                }
 
-                personalizeToast();
+                if (map.title) {
+                    $titleElement.append(map.title).addClass(options.titleClass);
+                    $toastElement.append($titleElement);
+                }
 
-                displayToast();
+                if (map.message) {
+                    $messageElement.append(map.message).addClass(options.messageClass);
+                    $toastElement.append($messageElement);
+                }
 
-                handleEvents();
+                if (options.closeButton) {
+                    $closeElement.addClass('toast-close-button').attr('role', 'button');
+                    $toastElement.prepend($closeElement);
+                }
+
+                if (options.progressBar) {
+                    $progressElement.addClass('toast-progress');
+                    $toastElement.prepend($progressElement);
+                }
+
+                $toastElement.hide();
+                if (options.newestOnTop) {
+                    $container.prepend($toastElement);
+                } else {
+                    $container.append($toastElement);
+                }
+                $toastElement[options.showMethod](
+                    {duration: options.showDuration, easing: options.showEasing, complete: options.onShown}
+                );
+
+                if (options.timeOut > 0) {
+                    intervalId = setTimeout(hideToast, options.timeOut);
+                    progressBar.maxHideTime = parseFloat(options.timeOut);
+                    progressBar.hideEta = new Date().getTime() + progressBar.maxHideTime;
+                    if (options.progressBar) {
+                        progressBar.intervalId = setInterval(updateProgress, 10);
+                    }
+                }
+
+                $toastElement.hover(stickAround, delayedHideToast);
+                if (!options.onclick && options.tapToDismiss) {
+                    $toastElement.click(hideToast);
+                }
+
+                if (options.closeButton && $closeElement) {
+                    $closeElement.click(function (event) {
+                        if (event.stopPropagation) {
+                            event.stopPropagation();
+                        } else if (event.cancelBubble !== undefined && event.cancelBubble !== true) {
+                            event.cancelBubble = true;
+                        }
+                        hideToast(true);
+                    });
+                }
+
+                if (options.onclick) {
+                    $toastElement.click(function () {
+                        options.onclick();
+                        hideToast();
+                    });
+                }
 
                 publish(response);
 
@@ -44572,134 +44631,14 @@ module.exports = require('./lib/React');
 
                 return $toastElement;
 
-                function escapeHtml(source) {
-                    if (source == null)
-                        source = "";
-
-                    return new String(source)
-                        .replace(/&/g, '&amp;')
-                        .replace(/"/g, '&quot;')
-                        .replace(/'/g, '&#39;')
-                        .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;');
-                }
-
-                function personalizeToast() {
-                    setIcon();
-                    setTitle();
-                    setMessage();
-                    setCloseButton();
-                    setProgressBar();
-                    setSequence();
-                }
-
-                function handleEvents() {
-                    $toastElement.hover(stickAround, delayedHideToast);
-                    if (!options.onclick && options.tapToDismiss) {
-                        $toastElement.click(hideToast);
-                    }
-
-                    if (options.closeButton && $closeElement) {
-                        $closeElement.click(function (event) {
-                            if (event.stopPropagation) {
-                                event.stopPropagation();
-                            } else if (event.cancelBubble !== undefined && event.cancelBubble !== true) {
-                                event.cancelBubble = true;
-                            }
-                            hideToast(true);
-                        });
-                    }
-
-                    if (options.onclick) {
-                        $toastElement.click(function (event) {
-                            options.onclick(event);
-                            hideToast();
-                        });
-                    }
-                }
-
-                function displayToast() {
-                    $toastElement.hide();
-
-                    $toastElement[options.showMethod](
-                        {duration: options.showDuration, easing: options.showEasing, complete: options.onShown}
-                    );
-
-                    if (options.timeOut > 0) {
-                        intervalId = setTimeout(hideToast, options.timeOut);
-                        progressBar.maxHideTime = parseFloat(options.timeOut);
-                        progressBar.hideEta = new Date().getTime() + progressBar.maxHideTime;
-                        if (options.progressBar) {
-                            progressBar.intervalId = setInterval(updateProgress, 10);
-                        }
-                    }
-                }
-
-                function setIcon() {
-                    if (map.iconClass) {
-                        $toastElement.addClass(options.toastClass).addClass(iconClass);
-                    }
-                }
-
-                function setSequence() {
-                    if (options.newestOnTop) {
-                        $container.prepend($toastElement);
-                    } else {
-                        $container.append($toastElement);
-                    }
-                }
-
-                function setTitle() {
-                    if (map.title) {
-                        $titleElement.append(!options.escapeHtml ? map.title : escapeHtml(map.title)).addClass(options.titleClass);
-                        $toastElement.append($titleElement);
-                    }
-                }
-
-                function setMessage() {
-                    if (map.message) {
-                        $messageElement.append(!options.escapeHtml ? map.message : escapeHtml(map.message)).addClass(options.messageClass);
-                        $toastElement.append($messageElement);
-                    }
-                }
-
-                function setCloseButton() {
-                    if (options.closeButton) {
-                        $closeElement.addClass('toast-close-button').attr('role', 'button');
-                        $toastElement.prepend($closeElement);
-                    }
-                }
-
-                function setProgressBar() {
-                    if (options.progressBar) {
-                        $progressElement.addClass('toast-progress');
-                        $toastElement.prepend($progressElement);
-                    }
-                }
-
-                function shouldExit(options, map) {
-                    if (options.preventDuplicates) {
-                        if (map.message === previousToast) {
-                            return true;
-                        } else {
-                            previousToast = map.message;
-                        }
-                    }
-                    return false;
-                }
-
                 function hideToast(override) {
-                    var method = override && options.closeMethod !== false ? options.closeMethod : options.hideMethod;
-                    var duration = override && options.closeDuration !== false ?
-                        options.closeDuration : options.hideDuration;
-                    var easing = override && options.closeEasing !== false ? options.closeEasing : options.hideEasing;
                     if ($(':focus', $toastElement).length && !override) {
                         return;
                     }
                     clearTimeout(progressBar.intervalId);
-                    return $toastElement[method]({
-                        duration: duration,
-                        easing: easing,
+                    return $toastElement[options.hideMethod]({
+                        duration: options.hideDuration,
+                        easing: options.hideEasing,
                         complete: function () {
                             removeToast($toastElement);
                             if (options.onHidden && response.state !== 'hidden') {
@@ -44747,9 +44686,9 @@ module.exports = require('./lib/React');
                 $toastElement = null;
                 if ($container.children().length === 0) {
                     $container.remove();
-                    previousToast = undefined;
                 }
             }
+            //#endregion
 
         })();
     });
@@ -44757,7 +44696,7 @@ module.exports = require('./lib/React');
     if (typeof module !== 'undefined' && module.exports) { //Node
         module.exports = factory(require('jquery'));
     } else {
-        window.toastr = factory(window.jQuery);
+        window['toastr'] = factory(window['jQuery']);
     }
 }));
 
@@ -44812,6 +44751,7 @@ var AuthorApi = {
 };
 
 module.exports = AuthorApi;
+
 },{"./authorData":200,"lodash":3}],200:[function(require,module,exports){
 module.exports = {
 	authors:
@@ -44833,26 +44773,13 @@ module.exports = {
 		}
 	]
 };
+
 },{}],201:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
 
 var About = React.createClass({displayName: "About",
-  statics: {
-    willTransitionTo: function(transition, params, query, callback){
-        if(!confirm('Are you sure you want to read a page that\'s this boring?')){
-            transition.abort();
-        }else{
-            callback();
-        }
-    },
-    willTransitionFrom: function(transition, component){
-        if(!confirm('Are you sure you want to leave?')){
-            transition.abort();
-        }
-    }
-  },
     render: function(){
       return (
           React.createElement("div", null, 
@@ -44875,6 +44802,7 @@ var About = React.createClass({displayName: "About",
 });
 
 module.exports = About;
+
 },{"react":197}],202:[function(require,module,exports){
 var React = require('react');
 var Header = require('./common/header');
@@ -44895,6 +44823,7 @@ var App = React.createClass({displayName: "App",
 });
 
 module.exports = App;
+
 },{"./common/header":207,"jquery":2,"react":197,"react-router":28}],203:[function(require,module,exports){
 "use strict";
 
@@ -44902,7 +44831,12 @@ var React = require('react');
 var Input = require('../common/textInput');
 
 var AuthorForm = React.createClass({displayName: "AuthorForm",
-
+    propTypes: {
+        author: React.PropTypes.object.isRequired,
+        onSave: React.PropTypes.func.isRequired,
+        onChange: React.PropTypes.func.isRequired,
+        errors: React.PropTypes.object
+    },
     render: function(){
       return (
           React.createElement("form", null, 
@@ -44930,11 +44864,13 @@ var AuthorForm = React.createClass({displayName: "AuthorForm",
 });
 
 module.exports = AuthorForm;
+
 },{"../common/textInput":208,"react":197}],204:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
-var AuthorApi = require('../../api/authorApi');
+var Router = require('react-router');
+var Link = Router.Link;
 
 var AuthorList = React.createClass({displayName: "AuthorList",
     propTypes:{
@@ -44945,7 +44881,9 @@ var AuthorList = React.createClass({displayName: "AuthorList",
       var createAuthorRow = function(author){
           return (
               React.createElement("tr", {key: author.id}, 
-                React.createElement("td", null, React.createElement("a", {href: "/#authors/" + author.id}, author.id)), 
+                React.createElement("td", null, 
+                  React.createElement(Link, {to: "manageAuthor", params: {id: author.id}}, author.id)
+                ), 
                 React.createElement("td", null, author.firstName, " ", author.lastName)
               )
           );
@@ -44968,7 +44906,8 @@ var AuthorList = React.createClass({displayName: "AuthorList",
 });
 
 module.exports = AuthorList;
-},{"../../api/authorApi":199,"react":197}],205:[function(require,module,exports){
+
+},{"react":197,"react-router":28}],205:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -45002,6 +44941,7 @@ var AuthorPage = React.createClass({displayName: "AuthorPage",
 });
 
 module.exports = AuthorPage;
+
 },{"../../api/authorApi":199,"./authorList":204,"react":197,"react-router":28}],206:[function(require,module,exports){
 "use strict";
 
@@ -45016,13 +44956,34 @@ var ManageAuthorPage = React.createClass({displayName: "ManageAuthorPage",
     mixins: [
         Router.Navigation
     ],
+
+    statics: {
+      willTransitionFrom: function(transition, component){
+          if(component.state.dirty && !confirm('Leave without saving?')){
+              transition.abort();
+          }
+      }
+    },
+
     getInitialState: function(){
         return {
             author: { id: '', firstName: '', lastName: ''},
-            errors: {}
+            errors: {},
+            dirty: false
         };
     },
+
+    //calling setState in this component won't cause component to render. That's why we should use this one instead of componentDidMount
+    componentWillMount: function(){
+        var authorId = this.props.params.id; // from the path '/author:id'
+
+        if(authorId){
+            this.setState({author: AuthorApi.getAuthorbyId(authorId)});
+        }
+    },
+
     setAuthorState: function(event){
+        this.setState({dirty: true});
         var field = event.target.name;
         var value = event.target.value;
         this.state.author[field] = value;
@@ -45033,12 +44994,12 @@ var ManageAuthorPage = React.createClass({displayName: "ManageAuthorPage",
         this.state.errors = {}; //clear any previous errors.
 
         if(this.state.author.firstName.length < 3){
-            this.state.errors.firstName = 'First name must be at leat 3 characters.';
+            this.state.errors.firstName = 'First name must be at least 3 characters.';
             formIsValid = false;
         }
 
         if(this.state.author.lastName.length < 3){
-            this.state.errors.lastName = 'Last name must be at leat 3 characters.';
+            this.state.errors.lastName = 'Last name must be at least 3 characters.';
             formIsValid = false;
         }
 
@@ -45053,6 +45014,7 @@ var ManageAuthorPage = React.createClass({displayName: "ManageAuthorPage",
         }
 
         AuthorApi.saveAuthor(this.state.author);
+        this.setState({dirty: false});
         toastr.success('Author saved.');
         this.transitionTo('authors');
     },
@@ -45069,6 +45031,7 @@ var ManageAuthorPage = React.createClass({displayName: "ManageAuthorPage",
 });
 
 module.exports = ManageAuthorPage;
+
 },{"../../api/authorApi":199,"./authorForm":203,"react":197,"react-router":28,"toastr":198}],207:[function(require,module,exports){
 "use strict";
 
@@ -45096,6 +45059,7 @@ var Header = React.createClass({displayName: "Header",
 });
 
 module.exports = Header;
+
 },{"react":197,"react-router":28}],208:[function(require,module,exports){
 "use strict";
 
@@ -45137,6 +45101,7 @@ var Input = React.createClass({displayName: "Input",
 });
 
 module.exports = Input;
+
 },{"react":197}],209:[function(require,module,exports){
 "use strict";
 
@@ -45157,6 +45122,7 @@ var Home = React.createClass({displayName: "Home",
 });
 
 module.exports = Home;
+
 },{"react":197,"react-router":28}],210:[function(require,module,exports){
 "use strict";
 
@@ -45176,6 +45142,7 @@ var NotFoundPage = React.createClass({displayName: "NotFoundPage",
 });
 
 module.exports = NotFoundPage;
+
 },{"react":197,"react-router":28}],211:[function(require,module,exports){
 "use strict";
 
@@ -45186,6 +45153,7 @@ var routes = require('./routes');
 Router.run(routes, function(Handler){
     React.render(React.createElement(Handler, null), document.getElementById('app'));
 });
+
 },{"./routes":212,"react":197,"react-router":28}],212:[function(require,module,exports){
 "use strict";
 
@@ -45203,6 +45171,7 @@ var routes = (
     React.createElement(DefaultRoute, {handler: require('./components/homePage')}), 
     React.createElement(Route, {name: "authors", handler: require('./components/authors/authorPage')}), 
     React.createElement(Route, {name: "addAuthor", path: "author", handler: require('./components/authors/manageAuthorPage')}), 
+    React.createElement(Route, {name: "manageAuthor", path: "author/:id", handler: require('./components/authors/manageAuthorPage')}), 
     React.createElement(Route, {name: "about", handler: require('./components/about/aboutPage')}), 
     React.createElement(NotFoundRoute, {handler: require('./components/notFoundPage')}), 
     React.createElement(Redirect, {from: "about-us", to: "about"}), 
@@ -45212,4 +45181,5 @@ var routes = (
 );
 
 module.exports = routes;
+
 },{"./components/about/aboutPage":201,"./components/app":202,"./components/authors/authorPage":205,"./components/authors/manageAuthorPage":206,"./components/homePage":209,"./components/notFoundPage":210,"react":197,"react-router":28}]},{},[211]);
