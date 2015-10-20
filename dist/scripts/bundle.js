@@ -417,7 +417,7 @@ module.exports.Dispatcher = require('./lib/Dispatcher');
  * of patent rights can be found in the PATENTS file in the same directory.
  *
  * @providesModule Dispatcher
- *
+ * 
  * @preventMunge
  */
 
@@ -23539,7 +23539,7 @@ var RouteHandler = require('./RouteHandler');
  *       <Route name="about" handler={About}/>
  *     </Route>
  *   ];
- *
+ *   
  *   Router.run(routes, function (Handler) {
  *     React.render(<Handler/>, document.body);
  *   });
@@ -24752,9 +24752,9 @@ var createRouter = require('./createRouter');
  *   Router.run(routes, function (Handler) {
  *     React.render(<Handler/>, document.body);
  *   });
- *
+ * 
  * Using HTML5 history and a custom "cursor" prop:
- *
+ * 
  *   Router.run(routes, Router.HistoryLocation, function (Handler) {
  *     React.render(<Handler cursor={cursor}/>, document.body);
  *   });
@@ -44969,7 +44969,7 @@ module.exports = require('./lib/React');
 },{"./lib/React":75}],203:[function(require,module,exports){
 /*
  * Toastr
- * Copyright 2012-2014
+ * Copyright 2012-2015
  * Authors: John Papa, Hans Fjällemark, and Tim Ferrell.
  * All Rights Reserved.
  * Use, reproduction, distribution, and modification of this code is subject to the terms and
@@ -44979,6 +44979,7 @@ module.exports = require('./lib/React');
  *
  * Project: https://github.com/CodeSeven/toastr
  */
+/* global define */
 ; (function (define) {
     define(['jquery'], function ($) {
         return (function () {
@@ -45001,7 +45002,7 @@ module.exports = require('./lib/React');
                 options: {},
                 subscribe: subscribe,
                 success: success,
-                version: '2.1.0',
+                version: '2.1.2',
                 warning: warning
             };
 
@@ -45009,7 +45010,8 @@ module.exports = require('./lib/React');
 
             return toastr;
 
-            //#region Accessible Methods
+            ////////////////
+
             function error(message, title, optionsOverride) {
                 return notify({
                     type: toastType.error,
@@ -45066,10 +45068,10 @@ module.exports = require('./lib/React');
                 });
             }
 
-            function clear($toastElement) {
+            function clear($toastElement, clearOptions) {
                 var options = getOptions();
                 if (!$container) { getContainer(options); }
-                if (!clearToast($toastElement, options)) {
+                if (!clearToast($toastElement, options, clearOptions)) {
                     clearContainer(options);
                 }
             }
@@ -45085,9 +45087,8 @@ module.exports = require('./lib/React');
                     $container.remove();
                 }
             }
-            //#endregion
 
-            //#region Internal Methods
+            // internal functions
 
             function clearContainer (options) {
                 var toastsToClear = $container.children();
@@ -45096,8 +45097,9 @@ module.exports = require('./lib/React');
                 }
             }
 
-            function clearToast ($toastElement, options) {
-                if ($toastElement && $(':focus', $toastElement).length === 0) {
+            function clearToast ($toastElement, options, clearOptions) {
+                var force = clearOptions && clearOptions.force ? clearOptions.force : false;
+                if ($toastElement && (force || $(':focus', $toastElement).length === 0)) {
                     $toastElement[options.hideMethod]({
                         duration: options.hideDuration,
                         easing: options.hideEasing,
@@ -45134,6 +45136,9 @@ module.exports = require('./lib/React');
                     hideDuration: 1000,
                     hideEasing: 'swing',
                     onHidden: undefined,
+                    closeMethod: false,
+                    closeDuration: false,
+                    closeEasing: false,
 
                     extendedTimeOut: 1000,
                     iconClasses: {
@@ -45147,8 +45152,9 @@ module.exports = require('./lib/React');
                     timeOut: 5000, // Set timeOut and extendedTimeOut to 0 to make it sticky
                     titleClass: 'toast-title',
                     messageClass: 'toast-message',
+                    escapeHtml: false,
                     target: 'body',
-                    closeHtml: '<button>&times;</button>',
+                    closeHtml: '<button type="button">&times;</button>',
                     newestOnTop: true,
                     preventDuplicates: false,
                     progressBar: false
@@ -45161,109 +45167,44 @@ module.exports = require('./lib/React');
             }
 
             function notify(map) {
-                var options = getOptions(),
-                    iconClass = map.iconClass || options.iconClass;
-
-                if (options.preventDuplicates) {
-                    if (map.message === previousToast) {
-                        return;
-                    } else {
-                        previousToast = map.message;
-                    }
-                }
+                var options = getOptions();
+                var iconClass = map.iconClass || options.iconClass;
 
                 if (typeof (map.optionsOverride) !== 'undefined') {
                     options = $.extend(options, map.optionsOverride);
                     iconClass = map.optionsOverride.iconClass || iconClass;
                 }
 
+                if (shouldExit(options, map)) { return; }
+
                 toastId++;
 
                 $container = getContainer(options, true);
-                var intervalId = null,
-                    $toastElement = $('<div/>'),
-                    $titleElement = $('<div/>'),
-                    $messageElement = $('<div/>'),
-                    $progressElement = $('<div/>'),
-                    $closeElement = $(options.closeHtml),
-                    progressBar = {
-                        intervalId: null,
-                        hideEta: null,
-                        maxHideTime: null
-                    },
-                    response = {
-                        toastId: toastId,
-                        state: 'visible',
-                        startTime: new Date(),
-                        options: options,
-                        map: map
-                    };
 
-                if (map.iconClass) {
-                    $toastElement.addClass(options.toastClass).addClass(iconClass);
-                }
+                var intervalId = null;
+                var $toastElement = $('<div/>');
+                var $titleElement = $('<div/>');
+                var $messageElement = $('<div/>');
+                var $progressElement = $('<div/>');
+                var $closeElement = $(options.closeHtml);
+                var progressBar = {
+                    intervalId: null,
+                    hideEta: null,
+                    maxHideTime: null
+                };
+                var response = {
+                    toastId: toastId,
+                    state: 'visible',
+                    startTime: new Date(),
+                    options: options,
+                    map: map
+                };
 
-                if (map.title) {
-                    $titleElement.append(map.title).addClass(options.titleClass);
-                    $toastElement.append($titleElement);
-                }
+                personalizeToast();
 
-                if (map.message) {
-                    $messageElement.append(map.message).addClass(options.messageClass);
-                    $toastElement.append($messageElement);
-                }
+                displayToast();
 
-                if (options.closeButton) {
-                    $closeElement.addClass('toast-close-button').attr('role', 'button');
-                    $toastElement.prepend($closeElement);
-                }
-
-                if (options.progressBar) {
-                    $progressElement.addClass('toast-progress');
-                    $toastElement.prepend($progressElement);
-                }
-
-                $toastElement.hide();
-                if (options.newestOnTop) {
-                    $container.prepend($toastElement);
-                } else {
-                    $container.append($toastElement);
-                }
-                $toastElement[options.showMethod](
-                    {duration: options.showDuration, easing: options.showEasing, complete: options.onShown}
-                );
-
-                if (options.timeOut > 0) {
-                    intervalId = setTimeout(hideToast, options.timeOut);
-                    progressBar.maxHideTime = parseFloat(options.timeOut);
-                    progressBar.hideEta = new Date().getTime() + progressBar.maxHideTime;
-                    if (options.progressBar) {
-                        progressBar.intervalId = setInterval(updateProgress, 10);
-                    }
-                }
-
-                $toastElement.hover(stickAround, delayedHideToast);
-                if (!options.onclick && options.tapToDismiss) {
-                    $toastElement.click(hideToast);
-                }
-
-                if (options.closeButton && $closeElement) {
-                    $closeElement.click(function (event) {
-                        if (event.stopPropagation) {
-                            event.stopPropagation();
-                        } else if (event.cancelBubble !== undefined && event.cancelBubble !== true) {
-                            event.cancelBubble = true;
-                        }
-                        hideToast(true);
-                    });
-                }
-
-                if (options.onclick) {
-                    $toastElement.click(function () {
-                        options.onclick();
-                        hideToast();
-                    });
-                }
+                handleEvents();
 
                 publish(response);
 
@@ -45273,14 +45214,134 @@ module.exports = require('./lib/React');
 
                 return $toastElement;
 
+                function escapeHtml(source) {
+                    if (source == null)
+                        source = "";
+
+                    return new String(source)
+                        .replace(/&/g, '&amp;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#39;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;');
+                }
+
+                function personalizeToast() {
+                    setIcon();
+                    setTitle();
+                    setMessage();
+                    setCloseButton();
+                    setProgressBar();
+                    setSequence();
+                }
+
+                function handleEvents() {
+                    $toastElement.hover(stickAround, delayedHideToast);
+                    if (!options.onclick && options.tapToDismiss) {
+                        $toastElement.click(hideToast);
+                    }
+
+                    if (options.closeButton && $closeElement) {
+                        $closeElement.click(function (event) {
+                            if (event.stopPropagation) {
+                                event.stopPropagation();
+                            } else if (event.cancelBubble !== undefined && event.cancelBubble !== true) {
+                                event.cancelBubble = true;
+                            }
+                            hideToast(true);
+                        });
+                    }
+
+                    if (options.onclick) {
+                        $toastElement.click(function (event) {
+                            options.onclick(event);
+                            hideToast();
+                        });
+                    }
+                }
+
+                function displayToast() {
+                    $toastElement.hide();
+
+                    $toastElement[options.showMethod](
+                        {duration: options.showDuration, easing: options.showEasing, complete: options.onShown}
+                    );
+
+                    if (options.timeOut > 0) {
+                        intervalId = setTimeout(hideToast, options.timeOut);
+                        progressBar.maxHideTime = parseFloat(options.timeOut);
+                        progressBar.hideEta = new Date().getTime() + progressBar.maxHideTime;
+                        if (options.progressBar) {
+                            progressBar.intervalId = setInterval(updateProgress, 10);
+                        }
+                    }
+                }
+
+                function setIcon() {
+                    if (map.iconClass) {
+                        $toastElement.addClass(options.toastClass).addClass(iconClass);
+                    }
+                }
+
+                function setSequence() {
+                    if (options.newestOnTop) {
+                        $container.prepend($toastElement);
+                    } else {
+                        $container.append($toastElement);
+                    }
+                }
+
+                function setTitle() {
+                    if (map.title) {
+                        $titleElement.append(!options.escapeHtml ? map.title : escapeHtml(map.title)).addClass(options.titleClass);
+                        $toastElement.append($titleElement);
+                    }
+                }
+
+                function setMessage() {
+                    if (map.message) {
+                        $messageElement.append(!options.escapeHtml ? map.message : escapeHtml(map.message)).addClass(options.messageClass);
+                        $toastElement.append($messageElement);
+                    }
+                }
+
+                function setCloseButton() {
+                    if (options.closeButton) {
+                        $closeElement.addClass('toast-close-button').attr('role', 'button');
+                        $toastElement.prepend($closeElement);
+                    }
+                }
+
+                function setProgressBar() {
+                    if (options.progressBar) {
+                        $progressElement.addClass('toast-progress');
+                        $toastElement.prepend($progressElement);
+                    }
+                }
+
+                function shouldExit(options, map) {
+                    if (options.preventDuplicates) {
+                        if (map.message === previousToast) {
+                            return true;
+                        } else {
+                            previousToast = map.message;
+                        }
+                    }
+                    return false;
+                }
+
                 function hideToast(override) {
+                    var method = override && options.closeMethod !== false ? options.closeMethod : options.hideMethod;
+                    var duration = override && options.closeDuration !== false ?
+                        options.closeDuration : options.hideDuration;
+                    var easing = override && options.closeEasing !== false ? options.closeEasing : options.hideEasing;
                     if ($(':focus', $toastElement).length && !override) {
                         return;
                     }
                     clearTimeout(progressBar.intervalId);
-                    return $toastElement[options.hideMethod]({
-                        duration: options.hideDuration,
-                        easing: options.hideEasing,
+                    return $toastElement[method]({
+                        duration: duration,
+                        easing: easing,
                         complete: function () {
                             removeToast($toastElement);
                             if (options.onHidden && response.state !== 'hidden') {
@@ -45328,9 +45389,9 @@ module.exports = require('./lib/React');
                 $toastElement = null;
                 if ($container.children().length === 0) {
                     $container.remove();
+                    previousToast = undefined;
                 }
             }
-            //#endregion
 
         })();
     });
@@ -45338,7 +45399,7 @@ module.exports = require('./lib/React');
     if (typeof module !== 'undefined' && module.exports) { //Node
         module.exports = factory(require('jquery'));
     } else {
-        window['toastr'] = factory(window['jQuery']);
+        window.toastr = factory(window.jQuery);
     }
 }));
 
@@ -45380,7 +45441,6 @@ var AuthorActions = {
 };
 
 module.exports = AuthorActions;
-
 },{"../api/authorApi":206,"../constants/actionTypes":218,"../dispatcher/appDispatcher":219}],205:[function(require,module,exports){
 "use strict";
 
@@ -45400,7 +45460,6 @@ var InitializeActions = {
 };
 
 module.exports = InitializeActions;
-
 },{"../api/authorApi":206,"../constants/actionTypes":218,"../dispatcher/appDispatcher":219}],206:[function(require,module,exports){
 "use strict";
 
@@ -45452,7 +45511,6 @@ var AuthorApi = {
 };
 
 module.exports = AuthorApi;
-
 },{"./authorData":207,"lodash":7}],207:[function(require,module,exports){
 module.exports = {
 	authors:
@@ -45474,7 +45532,6 @@ module.exports = {
 		}
 	]
 };
-
 },{}],208:[function(require,module,exports){
 "use strict";
 
@@ -45483,17 +45540,17 @@ var React = require('react');
 var About = React.createClass({displayName: "About",
     render: function(){
       return (
-          React.createElement("div", null,
-            React.createElement("h1", null, "About"),
-            React.createElement("p", null,
-                "This application uses the following tecnologies:",
-                React.createElement("ul", null,
-                    React.createElement("li", null, "React"),
-                    React.createElement("li", null, "React Router"),
-                    React.createElement("li", null, "Flux"),
-                    React.createElement("li", null, "Node"),
-                    React.createElement("li", null, "Gulp"),
-                    React.createElement("li", null, "Browserify"),
+          React.createElement("div", null, 
+            React.createElement("h1", null, "About"), 
+            React.createElement("p", null, 
+                "This application uses the following tecnologies:", 
+                React.createElement("ul", null, 
+                    React.createElement("li", null, "React"), 
+                    React.createElement("li", null, "React Router"), 
+                    React.createElement("li", null, "Flux"), 
+                    React.createElement("li", null, "Node"), 
+                    React.createElement("li", null, "Gulp"), 
+                    React.createElement("li", null, "Browserify"), 
                     React.createElement("li", null, "Bootstrap")
                 )
             )
@@ -45503,7 +45560,6 @@ var About = React.createClass({displayName: "About",
 });
 
 module.exports = About;
-
 },{"react":202}],209:[function(require,module,exports){
 var React = require('react');
 var Header = require('./common/header');
@@ -45513,9 +45569,9 @@ $ = jQuery = require('jquery');
 var App = React.createClass({displayName: "App",
   render: function(){
       return (
-          React.createElement("div", null,
-            React.createElement(Header, null),
-            React.createElement("div", {className: "container-fluid"},
+          React.createElement("div", null, 
+            React.createElement(Header, null), 
+            React.createElement("div", {className: "container-fluid"}, 
               React.createElement(RouteHandler, null)
             )
           )
@@ -45524,7 +45580,6 @@ var App = React.createClass({displayName: "App",
 });
 
 module.exports = App;
-
 },{"./common/header":214,"jquery":6,"react":202,"react-router":33}],210:[function(require,module,exports){
 "use strict";
 
@@ -45540,23 +45595,23 @@ var AuthorForm = React.createClass({displayName: "AuthorForm",
     },
     render: function(){
       return (
-          React.createElement("form", null,
-              React.createElement("h1", null, "Manage Author"),
+          React.createElement("form", null, 
+              React.createElement("h1", null, "Manage Author"), 
               React.createElement(Input, {
-                  name: "firstName",
-                  label: "First Name",
-                  placeholder: "First Name",
-                  value: this.props.author.firstName,
-                  onChange: this.props.onChange,
-                  error: this.props.errors.firstName}),
+                  name: "firstName", 
+                  label: "First Name", 
+                  placeholder: "First Name", 
+                  value: this.props.author.firstName, 
+                  onChange: this.props.onChange, 
+                  error: this.props.errors.firstName}), 
 
               React.createElement(Input, {
-                  name: "lastName",
-                  label: "Last Name",
-                  placeholder: "Last Name",
-                  value: this.props.author.lastName,
-                  onChange: this.props.onChange,
-                  error: this.props.errors.lastName}),
+                  name: "lastName", 
+                  label: "Last Name", 
+                  placeholder: "Last Name", 
+                  value: this.props.author.lastName, 
+                  onChange: this.props.onChange, 
+                  error: this.props.errors.lastName}), 
 
                 React.createElement("input", {type: "submit", value: "Save", className: "btn btn-default", onClick: this.props.onSave})
           )
@@ -45565,7 +45620,6 @@ var AuthorForm = React.createClass({displayName: "AuthorForm",
 });
 
 module.exports = AuthorForm;
-
 },{"../common/textInput":215,"react":202}],211:[function(require,module,exports){
 "use strict";
 
@@ -45589,25 +45643,25 @@ var AuthorList = React.createClass({displayName: "AuthorList",
     render: function(){
       var createAuthorRow = function(author){
           return (
-              React.createElement("tr", {key: author.id},
-                React.createElement("td", null, React.createElement("a", {href: "#", onClick: this.deleteAuthor.bind(this, author.id)}, "Delete")),
-                React.createElement("td", null,
+              React.createElement("tr", {key: author.id}, 
+                React.createElement("td", null, React.createElement("a", {href: "#", onClick: this.deleteAuthor.bind(this, author.id)}, "Delete")), 
+                React.createElement("td", null, 
                   React.createElement(Link, {to: "manageAuthor", params: {id: author.id}}, author.id)
-                ),
+                ), 
                 React.createElement("td", null, author.firstName, " ", author.lastName)
               )
           );
       };
 
       return (
-        React.createElement("div", null,
-          React.createElement("table", {className: "table"},
-            React.createElement("thread", null,
-                React.createElement("th", null, "Delete"),
-                React.createElement("th", null, "ID"),
+        React.createElement("div", null, 
+          React.createElement("table", {className: "table"}, 
+            React.createElement("thread", null, 
+                React.createElement("th", null, "Delete"), 
+                React.createElement("th", null, "ID"), 
                 React.createElement("th", null, "Name")
-            ),
-            React.createElement("tbody", null,
+            ), 
+            React.createElement("tbody", null, 
                 this.props.authors.map(createAuthorRow, this)
             )
           )
@@ -45617,7 +45671,6 @@ var AuthorList = React.createClass({displayName: "AuthorList",
 });
 
 module.exports = AuthorList;
-
 },{"../../actions/authorActions":204,"react":202,"react-router":33,"toastr":203}],212:[function(require,module,exports){
 "use strict";
 
@@ -45652,9 +45705,9 @@ var AuthorPage = React.createClass({displayName: "AuthorPage",
 
     render: function(){
       return (
-        React.createElement("div", null,
-          React.createElement("h1", null, "Authors"),
-          React.createElement(Link, {to: "addAuthor", className: "btn btn-default"}, "Add Author"),
+        React.createElement("div", null, 
+          React.createElement("h1", null, "Authors"), 
+          React.createElement(Link, {to: "addAuthor", className: "btn btn-default"}, "Add Author"), 
           React.createElement(AuthorList, {authors: this.state.authors})
         )
       );
@@ -45662,7 +45715,6 @@ var AuthorPage = React.createClass({displayName: "AuthorPage",
 });
 
 module.exports = AuthorPage;
-
 },{"../../actions/authorActions":204,"../../api/authorApi":206,"../../stores/authorStore":222,"./authorList":211,"react":202,"react-router":33}],213:[function(require,module,exports){
 "use strict";
 
@@ -45747,10 +45799,10 @@ var ManageAuthorPage = React.createClass({displayName: "ManageAuthorPage",
     },
     render: function(){
       return (
-          React.createElement("div", null,
-            React.createElement(AuthorForm, {author: this.state.author,
-              onChange: this.setAuthorState,
-              onSave: this.saveAuthor,
+          React.createElement("div", null, 
+            React.createElement(AuthorForm, {author: this.state.author, 
+              onChange: this.setAuthorState, 
+              onSave: this.saveAuthor, 
               errors: this.state.errors})
           )
       );
@@ -45758,7 +45810,6 @@ var ManageAuthorPage = React.createClass({displayName: "ManageAuthorPage",
 });
 
 module.exports = ManageAuthorPage;
-
 },{"../../actions/authorActions":204,"../../stores/authorStore":222,"./authorForm":210,"react":202,"react-router":33,"toastr":203}],214:[function(require,module,exports){
 "use strict";
 
@@ -45769,14 +45820,14 @@ var Link = Router.Link;
 var Header = React.createClass({displayName: "Header",
     render: function(){
       return (
-        React.createElement("nav", {className: "navbar navbar-default"},
-          React.createElement("div", {className: "container-fluid"},
-            React.createElement(Link, {to: "app", className: "navbar-brand"},
+        React.createElement("nav", {className: "navbar navbar-default"}, 
+          React.createElement("div", {className: "container-fluid"}, 
+            React.createElement(Link, {to: "app", className: "navbar-brand"}, 
               React.createElement("img", {src: "images/pluralsight-logo.png"})
-            ),
-            React.createElement("ul", {className: "nav navbar-nav"},
-              React.createElement("li", null, React.createElement(Link, {to: "app"}, "Home")),
-              React.createElement("li", null, React.createElement(Link, {to: "authors"}, "Authors")),
+            ), 
+            React.createElement("ul", {className: "nav navbar-nav"}, 
+              React.createElement("li", null, React.createElement(Link, {to: "app"}, "Home")), 
+              React.createElement("li", null, React.createElement(Link, {to: "authors"}, "Authors")), 
               React.createElement("li", null, React.createElement(Link, {to: "about"}, "About"))
             )
           )
@@ -45786,7 +45837,6 @@ var Header = React.createClass({displayName: "Header",
 });
 
 module.exports = Header;
-
 },{"react":202,"react-router":33}],215:[function(require,module,exports){
 "use strict";
 
@@ -45809,17 +45859,17 @@ var Input = React.createClass({displayName: "Input",
       }
 
       return (
-          React.createElement("div", {className: wrapperclass},
-            React.createElement("label", {htmlFor: this.props.name}, this.props.label),
-            React.createElement("div", {className: "field"},
-              React.createElement("input", {type: "text",
-                name: this.props.name,
-                className: "form-control",
-                placeholder: this.props.placeholder,
-                ref: this.props.name,
-                value: this.props.value,
+          React.createElement("div", {className: wrapperclass}, 
+            React.createElement("label", {htmlFor: this.props.name}, this.props.label), 
+            React.createElement("div", {className: "field"}, 
+              React.createElement("input", {type: "text", 
+                name: this.props.name, 
+                className: "form-control", 
+                placeholder: this.props.placeholder, 
+                ref: this.props.name, 
+                value: this.props.value, 
                 onChange: this.props.onChange}
-                ),
+                ), 
               React.createElement("div", {className: "input"}, this.props.error)
             )
           )
@@ -45828,7 +45878,6 @@ var Input = React.createClass({displayName: "Input",
 });
 
 module.exports = Input;
-
 },{"react":202}],216:[function(require,module,exports){
 "use strict";
 
@@ -45839,9 +45888,9 @@ var Link = Router.Link;
 var Home = React.createClass({displayName: "Home",
     render: function(){
       return (
-        React.createElement("div", {className: "jumbotron"},
-          React.createElement("h1", null, "Pluralsight Administration"),
-          React.createElement("p", null, "React, React Router, and Flux for ultra-responsive web app."),
+        React.createElement("div", {className: "jumbotron"}, 
+          React.createElement("h1", null, "Pluralsight Administration"), 
+          React.createElement("p", null, "React, React Router, and Flux for ultra-responsive web app."), 
           React.createElement(Link, {to: "about", className: "btn btn-primary btn-lg"}, "Learn more")
         )
       );
@@ -45849,7 +45898,6 @@ var Home = React.createClass({displayName: "Home",
 });
 
 module.exports = Home;
-
 },{"react":202,"react-router":33}],217:[function(require,module,exports){
 "use strict";
 
@@ -45859,9 +45907,9 @@ var Link = require('react-router').Link;
 var NotFoundPage = React.createClass({displayName: "NotFoundPage",
     render: function(){
       return (
-          React.createElement("div", null,
-              React.createElement("h1", null, "Page Not Found"),
-              React.createElement("p", null, "Whoops! Sorry, there is nothing to see here."),
+          React.createElement("div", null, 
+              React.createElement("h1", null, "Page Not Found"), 
+              React.createElement("p", null, "Whoops! Sorry, there is nothing to see here."), 
               React.createElement("p", null, React.createElement(Link, {to: "app"}, "Back to Home"))
           )
       );
@@ -45869,7 +45917,6 @@ var NotFoundPage = React.createClass({displayName: "NotFoundPage",
 });
 
 module.exports = NotFoundPage;
-
 },{"react":202,"react-router":33}],218:[function(require,module,exports){
 "use strict";
 
@@ -45881,7 +45928,6 @@ module.exports = keyMirror({
     UPDATE_AUTHOR: null,
     DELETE_AUTHOR: null
 });
-
 },{"react/lib/keyMirror":187}],219:[function(require,module,exports){
 /*
 *
@@ -45893,7 +45939,6 @@ module.exports = keyMirror({
 var Dispatcher = require('flux').Dispatcher;
 
 module.exports = new Dispatcher();
-
 },{"flux":3}],220:[function(require,module,exports){
 "use strict";
 
@@ -45907,7 +45952,6 @@ InitializeActions.initApp();
 Router.run(routes, function(Handler){
     React.render(React.createElement(Handler, null), document.getElementById('app'));
 });
-
 },{"./actions/initializeActions":205,"./routes":221,"react":202,"react-router":33}],221:[function(require,module,exports){
 "use strict";
 
@@ -45921,21 +45965,20 @@ var Redirect = Router.Redirect;
 
 
 var routes = (
-  React.createElement(Route, {name: "app", path: "/", handler: require('./components/app')},
-    React.createElement(DefaultRoute, {handler: require('./components/homePage')}),
-    React.createElement(Route, {name: "authors", handler: require('./components/authors/authorPage')}),
-    React.createElement(Route, {name: "addAuthor", path: "author", handler: require('./components/authors/manageAuthorPage')}),
-    React.createElement(Route, {name: "manageAuthor", path: "author/:id", handler: require('./components/authors/manageAuthorPage')}),
-    React.createElement(Route, {name: "about", handler: require('./components/about/aboutPage')}),
-    React.createElement(NotFoundRoute, {handler: require('./components/notFoundPage')}),
-    React.createElement(Redirect, {from: "about-us", to: "about"}),
-    React.createElement(Redirect, {from: "awthurs", to: "Authors"}),
+  React.createElement(Route, {name: "app", path: "/", handler: require('./components/app')}, 
+    React.createElement(DefaultRoute, {handler: require('./components/homePage')}), 
+    React.createElement(Route, {name: "authors", handler: require('./components/authors/authorPage')}), 
+    React.createElement(Route, {name: "addAuthor", path: "author", handler: require('./components/authors/manageAuthorPage')}), 
+    React.createElement(Route, {name: "manageAuthor", path: "author/:id", handler: require('./components/authors/manageAuthorPage')}), 
+    React.createElement(Route, {name: "about", handler: require('./components/about/aboutPage')}), 
+    React.createElement(NotFoundRoute, {handler: require('./components/notFoundPage')}), 
+    React.createElement(Redirect, {from: "about-us", to: "about"}), 
+    React.createElement(Redirect, {from: "awthurs", to: "Authors"}), 
     React.createElement(Redirect, {from: "about/*", to: "about"})
   )
 );
 
 module.exports = routes;
-
 },{"./components/about/aboutPage":208,"./components/app":209,"./components/authors/authorPage":212,"./components/authors/manageAuthorPage":213,"./components/homePage":216,"./components/notFoundPage":217,"react":202,"react-router":33}],222:[function(require,module,exports){
 "use strict";
 
@@ -46000,5 +46043,4 @@ Dispatcher.register(function(action){
 });
 
 module.exports = AuthorStore;
-
 },{"../constants/actionTypes":218,"../dispatcher/appDispatcher":219,"events":1,"lodash":7,"object-assign":8}]},{},[220]);
