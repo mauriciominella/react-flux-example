@@ -34,22 +34,22 @@ var CourseStore = assign({}, EventEmitter.prototype, {
 
 Dispatcher.register(function(action){
     switch (action.actionType) {
-    /*  case ActionTypes.CREATE_AUTHOR:
-          _authors.push(action.author);
-          AuthorStore.emitChange();
+      case ActionTypes.CREATE_COURSE:
+          _courses.push(action.course);
+          CourseStore.emitChange();
         break;
-        case ActionTypes.UPDATE_AUTHOR:
-            var existingAuthor = _.find(_authors, {id: action.author.id});
-            var existingAuthorIndex = _.indexOf(_authors, existingAuthor);
-            _authors.splice(existingAuthorIndex, 1, action.author);
-            AuthorStore.emitChange();
+        case ActionTypes.UPDATE_COURSE:
+            var existingCourse = _.find(_courses, {id: action.course.id});
+            var existingCourseIndex = _.indexOf(_courses, existingCourse);
+            _courses.splice(existingCourseIndex, 1, action.course);
+            CourseStore.emitChange();
           break;
-        case ActionTypes.DELETE_AUTHOR:
-            _.remove(_authors, function(author){
-                return action.id === author.id;
+        case ActionTypes.DELETE_COURSE:
+            _.remove(_courses, function(course){
+                return action.id === course.id;
             });
-            AuthorStore.emitChange();
-          break;*/
+            CourseStore.emitChange();
+          break;
       default:
         // no op
     }

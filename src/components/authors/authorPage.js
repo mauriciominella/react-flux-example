@@ -2,8 +2,7 @@
 
 var React = require('react');
 var Router = require('react-router');
-var Link = require('react-router').Link;
-var AuthorApi = require('../../api/authorApi');
+var Link = Router.Link;
 
 var AuthorStore = require('../../stores/authorStore');
 var AuthorActions = require('../../actions/authorActions');
