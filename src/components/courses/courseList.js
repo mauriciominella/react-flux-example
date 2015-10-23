@@ -4,7 +4,7 @@ var React = require('react');
 var toastr = require('toastr');
 var Router = require('react-router');
 var Link = Router.Link;
-var CourseActions = require('../../actions/CourseActions');
+var CourseActions = require('../../actions/courseActions');
 var PropTypes = React.PropTypes;
 
 var CourseList = React.createClass({
