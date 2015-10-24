@@ -5,12 +5,13 @@ var Router = require('react-router');
 //var AuthorForm = require('./couseForm');
 var toastr = require('toastr');
 
+var CourseForm = require('./courseForm');
 var CourseActions = require('../../actions/courseActions');
 var CourseStore = require('../../stores/courseStore');
 
 var ManageCoursePage = React.createClass({
-  mixins:[
-      Reouter.Navigation
+  mixins: [
+      Router.Navigation
   ],
 
   statics: {
@@ -30,15 +31,33 @@ var ManageCoursePage = React.createClass({
           author: null,
           length: '',
           category: '',
-        }
-          errors: {},
-          dirty: false
-      };
+        },
+        errors: {},
+        dirty: false
+      }
+  },
+
+  componentWillMount: function(){
+      var courseId = this.props.params.id; // from the path '/author:id'
+
+      if(courseId){
+          this.setState({course: CourseStore.getCourseById(courseId)});
+      }
+  },
+
+  setCourseState: function(event){
+      this.setState({dirty: true});
+      var field = event.target.name;
+      var value = event.target.value;
+      this.state.course[field] = value;
+      return this.setState({course: this.state.course});
   },
 
   render: function() {
     return (
-      <div />
+      <div>
+        <CourseForm />
+      </div>
     );
   }
 

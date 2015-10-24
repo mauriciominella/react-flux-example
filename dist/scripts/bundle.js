@@ -45441,8 +45441,7 @@ var AuthorActions = {
 };
 
 module.exports = AuthorActions;
-
-},{"../api/authorApi":207,"../constants/actionTypes":223,"../dispatcher/appDispatcher":224}],205:[function(require,module,exports){
+},{"../api/authorApi":207,"../constants/actionTypes":225,"../dispatcher/appDispatcher":226}],205:[function(require,module,exports){
 "use strict";
 
 var Dispatcher = require('../dispatcher/appDispatcher');
@@ -45480,8 +45479,7 @@ var CourseActions = {
 };
 
 module.exports = CourseActions;
-
-},{"../api/courseApi":209,"../constants/actionTypes":223,"../dispatcher/appDispatcher":224}],206:[function(require,module,exports){
+},{"../api/courseApi":209,"../constants/actionTypes":225,"../dispatcher/appDispatcher":226}],206:[function(require,module,exports){
 "use strict";
 
 var Dispatcher = require('../dispatcher/appDispatcher');
@@ -45502,8 +45500,7 @@ var InitializeActions = {
 };
 
 module.exports = InitializeActions;
-
-},{"../api/authorApi":207,"../api/courseApi":209,"../constants/actionTypes":223,"../dispatcher/appDispatcher":224}],207:[function(require,module,exports){
+},{"../api/authorApi":207,"../api/courseApi":209,"../constants/actionTypes":225,"../dispatcher/appDispatcher":226}],207:[function(require,module,exports){
 "use strict";
 
 //This file is mocking a web API by hitting hard coded data.
@@ -45554,7 +45551,6 @@ var AuthorApi = {
 };
 
 module.exports = AuthorApi;
-
 },{"./authorData":208,"lodash":7}],208:[function(require,module,exports){
 module.exports = {
 	authors:
@@ -45576,7 +45572,6 @@ module.exports = {
 		}
 	]
 };
-
 },{}],209:[function(require,module,exports){
 "use strict";
 
@@ -45625,7 +45620,6 @@ var CourseApi = {
 };
 
 module.exports = CourseApi;
-
 },{"./courseData":210,"lodash":7}],210:[function(require,module,exports){
 module.exports = {
 	courses: [
@@ -45675,7 +45669,6 @@ module.exports = {
 		}
 	]
 };
-
 },{}],211:[function(require,module,exports){
 "use strict";
 
@@ -45704,7 +45697,6 @@ var About = React.createClass({displayName: "About",
 });
 
 module.exports = About;
-
 },{"react":202}],212:[function(require,module,exports){
 var React = require('react');
 var Header = require('./common/header');
@@ -45725,7 +45717,6 @@ var App = React.createClass({displayName: "App",
 });
 
 module.exports = App;
-
 },{"./common/header":217,"jquery":6,"react":202,"react-router":33}],213:[function(require,module,exports){
 "use strict";
 
@@ -45766,7 +45757,6 @@ var AuthorForm = React.createClass({displayName: "AuthorForm",
 });
 
 module.exports = AuthorForm;
-
 },{"../common/textInput":218,"react":202}],214:[function(require,module,exports){
 "use strict";
 
@@ -45818,7 +45808,6 @@ var AuthorList = React.createClass({displayName: "AuthorList",
 });
 
 module.exports = AuthorList;
-
 },{"../../actions/authorActions":204,"react":202,"react-router":33,"toastr":203}],215:[function(require,module,exports){
 "use strict";
 
@@ -45862,8 +45851,7 @@ var AuthorPage = React.createClass({displayName: "AuthorPage",
 });
 
 module.exports = AuthorPage;
-
-},{"../../actions/authorActions":204,"../../stores/authorStore":227,"./authorList":214,"react":202,"react-router":33}],216:[function(require,module,exports){
+},{"../../actions/authorActions":204,"../../stores/authorStore":229,"./authorList":214,"react":202,"react-router":33}],216:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -45958,8 +45946,7 @@ var ManageAuthorPage = React.createClass({displayName: "ManageAuthorPage",
 });
 
 module.exports = ManageAuthorPage;
-
-},{"../../actions/authorActions":204,"../../stores/authorStore":227,"./authorForm":213,"react":202,"react-router":33,"toastr":203}],217:[function(require,module,exports){
+},{"../../actions/authorActions":204,"../../stores/authorStore":229,"./authorForm":213,"react":202,"react-router":33,"toastr":203}],217:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -45987,7 +45974,6 @@ var Header = React.createClass({displayName: "Header",
 });
 
 module.exports = Header;
-
 },{"react":202,"react-router":33}],218:[function(require,module,exports){
 "use strict";
 
@@ -46029,8 +46015,49 @@ var Input = React.createClass({displayName: "Input",
 });
 
 module.exports = Input;
-
 },{"react":202}],219:[function(require,module,exports){
+"use strict";
+
+var React = require('react');
+var PropTypes = React.PropTypes;
+
+var CourseForm = React.createClass({displayName: "CourseForm",
+  propTypes: {
+      course: React.PropTypes.object.isRequired,
+      onSave: React.PropTypes.func.isRequired,
+      onChange: React.PropTypes.func.isRequired,
+      errors: React.PropTypes.object
+  },
+
+  render: function() {
+    return (
+      React.createElement("form", null, 
+          React.createElement("h1", null, "Manage Course"), 
+          React.createElement(Input, {
+              name: "title", 
+              label: "Title", 
+              placeholder: "Title", 
+              value: this.props.course.title, 
+              onChange: this.props.onChange, 
+              error: this.props.errors.title}), 
+
+          React.createElement(Input, {
+              name: "category", 
+              label: "Category", 
+              placeholder: "Category", 
+              value: this.props.course.category, 
+              onChange: this.props.onChange, 
+              error: this.props.errors.category}), 
+
+            React.createElement("input", {type: "submit", value: "Save", className: "btn btn-default", onClick: this.props.onSave})
+      )
+    );
+  }
+
+});
+
+module.exports = CourseForm;
+},{"react":202}],220:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -46090,8 +46117,7 @@ var CourseList = React.createClass({displayName: "CourseList",
 });
 
 module.exports = CourseList;
-
-},{"../../actions/courseActions":205,"react":202,"react-router":33,"toastr":203}],220:[function(require,module,exports){
+},{"../../actions/courseActions":205,"react":202,"react-router":33,"toastr":203}],221:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -46126,7 +46152,7 @@ var CoursePage = React.createClass({displayName: "CoursePage",
       return (
         React.createElement("div", null, 
           React.createElement("h1", null, "Courses"), 
-          React.createElement(Link, {to: "addAuthor", className: "btn btn-default"}, "Add Course"), 
+          React.createElement(Link, {to: "addCourse", className: "btn btn-default"}, "Add Course"), 
           React.createElement(CourseList, {courses: this.state.courses})
         )
       );
@@ -46134,8 +46160,74 @@ var CoursePage = React.createClass({displayName: "CoursePage",
 });
 
 module.exports = CoursePage;
+},{"../../actions/courseActions":205,"../../stores/courseStore":230,"./courseList":220,"react":202,"react-router":33}],222:[function(require,module,exports){
+"use strict";
 
-},{"../../actions/courseActions":205,"../../stores/courseStore":228,"./courseList":219,"react":202,"react-router":33}],221:[function(require,module,exports){
+var React = require('react');
+var Router = require('react-router');
+//var AuthorForm = require('./couseForm');
+var toastr = require('toastr');
+
+var CourseForm = require('./courseForm');
+var CourseActions = require('../../actions/courseActions');
+var CourseStore = require('../../stores/courseStore');
+
+var ManageCoursePage = React.createClass({displayName: "ManageCoursePage",
+  mixins: [
+      Router.Navigation
+  ],
+
+  statics: {
+    willTransitionFrom: function(transition, component){
+        if(component.state.dirty && !confirm('Leave without saving?')){
+            transition.abort();
+        }
+    }
+  },
+
+  getInitialState: function(){
+      return {
+        course: {
+          id: '',
+          title: '',
+          watchHref: '',
+          author: null,
+          length: '',
+          category: '',
+        },
+        errors: {},
+        dirty: false
+      }
+  },
+
+  componentWillMount: function(){
+      var courseId = this.props.params.id; // from the path '/author:id'
+
+      if(courseId){
+          this.setState({course: CourseStore.getCourseById(courseId)});
+      }
+  },
+
+  setCourseState: function(event){
+      this.setState({dirty: true});
+      var field = event.target.name;
+      var value = event.target.value;
+      this.state.course[field] = value;
+      return this.setState({course: this.state.course});
+  },
+
+  render: function() {
+    return (
+      React.createElement("div", null, 
+        React.createElement(CourseForm, null)
+      )
+    );
+  }
+
+});
+
+module.exports = ManageCoursePage;
+},{"../../actions/courseActions":205,"../../stores/courseStore":230,"./courseForm":219,"react":202,"react-router":33,"toastr":203}],223:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -46155,8 +46247,7 @@ var Home = React.createClass({displayName: "Home",
 });
 
 module.exports = Home;
-
-},{"react":202,"react-router":33}],222:[function(require,module,exports){
+},{"react":202,"react-router":33}],224:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -46175,8 +46266,7 @@ var NotFoundPage = React.createClass({displayName: "NotFoundPage",
 });
 
 module.exports = NotFoundPage;
-
-},{"react":202,"react-router":33}],223:[function(require,module,exports){
+},{"react":202,"react-router":33}],225:[function(require,module,exports){
 "use strict";
 
 var keyMirror = require('react/lib/keyMirror');
@@ -46190,8 +46280,7 @@ module.exports = keyMirror({
     UPDATE_COURSE: null,
     DELETE_COURSE: null,
 });
-
-},{"react/lib/keyMirror":187}],224:[function(require,module,exports){
+},{"react/lib/keyMirror":187}],226:[function(require,module,exports){
 /*
 *
 * AppDispatcher
@@ -46202,8 +46291,7 @@ module.exports = keyMirror({
 var Dispatcher = require('flux').Dispatcher;
 
 module.exports = new Dispatcher();
-
-},{"flux":3}],225:[function(require,module,exports){
+},{"flux":3}],227:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -46216,8 +46304,7 @@ InitializeActions.initApp();
 Router.run(routes, function(Handler){
     React.render(React.createElement(Handler, null), document.getElementById('app'));
 });
-
-},{"./actions/initializeActions":206,"./routes":226,"react":202,"react-router":33}],226:[function(require,module,exports){
+},{"./actions/initializeActions":206,"./routes":228,"react":202,"react-router":33}],228:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -46235,6 +46322,8 @@ var routes = (
     React.createElement(Route, {name: "addAuthor", path: "author", handler: require('./components/authors/manageAuthorPage')}), 
     React.createElement(Route, {name: "manageAuthor", path: "author/:id", handler: require('./components/authors/manageAuthorPage')}), 
     React.createElement(Route, {name: "courses", handler: require('./components/courses/coursePage')}), 
+    React.createElement(Route, {name: "addCourse", path: "course", handler: require('./components/courses/manageCoursePage')}), 
+    React.createElement(Route, {name: "manageCourse", path: "course/:id", handler: require('./components/courses/manageCoursePage')}), 
     React.createElement(Route, {name: "about", handler: require('./components/about/aboutPage')}), 
     React.createElement(NotFoundRoute, {handler: require('./components/notFoundPage')}), 
     React.createElement(Redirect, {from: "about-us", to: "about"}), 
@@ -46244,8 +46333,7 @@ var routes = (
 );
 
 module.exports = routes;
-
-},{"./components/about/aboutPage":211,"./components/app":212,"./components/authors/authorPage":215,"./components/authors/manageAuthorPage":216,"./components/courses/coursePage":220,"./components/homePage":221,"./components/notFoundPage":222,"react":202,"react-router":33}],227:[function(require,module,exports){
+},{"./components/about/aboutPage":211,"./components/app":212,"./components/authors/authorPage":215,"./components/authors/manageAuthorPage":216,"./components/courses/coursePage":221,"./components/courses/manageCoursePage":222,"./components/homePage":223,"./components/notFoundPage":224,"react":202,"react-router":33}],229:[function(require,module,exports){
 "use strict";
 
 var Dispatcher = require('../dispatcher/appDispatcher');
@@ -46309,8 +46397,7 @@ Dispatcher.register(function(action){
 });
 
 module.exports = AuthorStore;
-
-},{"../constants/actionTypes":223,"../dispatcher/appDispatcher":224,"events":1,"lodash":7,"object-assign":8}],228:[function(require,module,exports){
+},{"../constants/actionTypes":225,"../dispatcher/appDispatcher":226,"events":1,"lodash":7,"object-assign":8}],230:[function(require,module,exports){
 "use strict";
 
 var Dispatcher = require('../dispatcher/appDispatcher');
@@ -46373,5 +46460,4 @@ Dispatcher.register(function(action){
 });
 
 module.exports = CourseStore;
-
-},{"../constants/actionTypes":223,"../dispatcher/appDispatcher":224,"events":1,"lodash":7,"object-assign":8}]},{},[225]);
+},{"../constants/actionTypes":225,"../dispatcher/appDispatcher":226,"events":1,"lodash":7,"object-assign":8}]},{},[227]);

@@ -4,6 +4,12 @@ var React = require('react');
 var PropTypes = React.PropTypes;
 
 var CourseForm = React.createClass({
+  propTypes: {
+      course: React.PropTypes.object.isRequired,
+      onSave: React.PropTypes.func.isRequired,
+      onChange: React.PropTypes.func.isRequired,
+      errors: React.PropTypes.object
+  },
 
   render: function() {
     return (
