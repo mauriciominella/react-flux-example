@@ -1,6 +1,7 @@
 "use strict";
 
 var React = require('react');
+var Input = require('../common/textInput');
 var PropTypes = React.PropTypes;
 
 var CourseForm = React.createClass({
