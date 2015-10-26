@@ -15,7 +15,7 @@ var CourseForm = React.createClass({
   render: function() {
     var createAuthorOption = function(author){
           return (
-
+            <option></option>
           );
     };
 

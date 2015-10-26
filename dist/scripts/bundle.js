@@ -46032,8 +46032,10 @@ var CourseForm = React.createClass({displayName: "CourseForm",
 
   render: function() {
     var createAuthorOption = function(author){
-      
-    }
+          return (
+            React.createElement("option", null)
+          );
+    };
 
 
     return (
