@@ -13,6 +13,13 @@ var CourseForm = React.createClass({
   },
 
   render: function() {
+    var createAuthorOption = function(author){
+          return (
+
+          );
+    };
+
+
     return (
       <form>
           <h1>Manage Course</h1>
@@ -31,6 +38,18 @@ var CourseForm = React.createClass({
               value={this.props.course.category}
               onChange={this.props.onChange}
               error={this.props.errors.category} />
+
+            <select>
+
+            </select>
+
+            <Input
+                name="length"
+                label="Length"
+                placeholder="Length"
+                value={this.props.course.length}
+                onChange={this.props.onChange}
+                error={this.props.errors.length} />
 
             <input type="submit" value="Save" className="btn btn-default" onClick={this.props.onSave} />
       </form>
